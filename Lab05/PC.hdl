@@ -1,0 +1,30 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/a/PC.hdl
+
+/**
+ * A 16-bit counter with load and reset control bits.
+ * if      (reset[t] == 1) out[t+1] = 0
+ * else if (load[t] == 1)  out[t+1] = in[t]
+ * else if (inc[t] == 1)   out[t+1] = out[t] + 1  (integer addition)
+ * else                    out[t+1] = out[t]
+ */
+
+CHIP PC {
+    IN in[16],load,inc,reset;
+    OUT out[16];
+
+    PARTS:
+
+/**
+- a entrada reset tem prioridade sobre todas as outras, dessa forma, ela será tradada como o último componente antes de entrar no PC. tbm será tratada como um multiplexador, sendo que sel=reset. Quando reset=1, a entrada do PC serão 16 zeros, já com reset=0, a entrada vem da saída do próximo na ordem de prioridade.
+- Sendo esse o load. ou seja, tem outro Mux. Cuja saída será a entrada a do outro multiplexador. as entradas desse são: a=saída do mux referente ao inc, b=in e sel=load.
+- O último mux necessário nesse sistema é referente ao inc. a saída estará ligada na entrada do mux do load. se inc=0, quer dizer que não quer incrementar e deve-se manter o valor que estava lá, logo a entrada a desse mux é a saída de todo o sistema. a entrada b é a saída de um inc16 que possui entrada in (do sistema). ou seja, quando inc=1, pega a entrada do sistema, adiciona 1, e passa para o próximo mux.
+**/
+	Inc16(in=out1, out=out2);
+	Mux16(a=out1, b=out2, sel=inc, out=out3);
+	Mux16(a=out3, b=in, sel=load, out=out4);
+	Mux16(a=out4, b=false, sel=reset, out=out5);
+	Register(in=out5, load=true, out=out1, out=out);
+}
